@@ -30,7 +30,13 @@ AutoForm.addFormType('method', {
         // that instead of the default Meteor connection
         var ddp = c.formAttributes.ddp;
         ddp = (ddp && typeof ddp.call === 'function') ? ddp : Meteor;
-        ddp.call(c.formAttributes.meteormethod, doc, c.result);
+        if (ddp.status().status === 'waiting') {
+          // don't wait for the server's answer
+          ddp.call(c.formAttributes.meteormethod, doc, () => {});
+          c.result()
+        } else {
+          ddp.call(c.formAttributes.meteormethod, doc, c.result);
+        }
       }
     });
   },
